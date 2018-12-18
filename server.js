@@ -382,8 +382,9 @@ addon.defineCatalogHandler(function(args, cb) {
 if (module.parent) {
     module.exports = addon
 } else {
-    //addon.publishToDir('static');
-    addon.publishToWeb('http://anime.ers.pw/manifest.json');
-    addon.publishToCentral('http://anime.ers.pw/manifest.json');
     addon.runHTTPWithOptions({ port: 7000 });
+
+    //addon.publishToDir('static');
+    //addon.publishToWeb('http://anime.ers.pw/manifest.json');
+    addon.publishToCentral('http://anime.ers.pw/manifest.json');
 }
