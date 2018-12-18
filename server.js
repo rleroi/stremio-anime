@@ -7,10 +7,8 @@ var striptags = require('striptags') // https://www.npmjs.com/package/striptags
 TODO:
 - newly added episodes sometimes are shown as upcoming.
     Fix: fix timezone?
-- limited amount of results
-    Fix: do more requests with: extra: { skip: '30' } and page number in api
 - Cache might take too much memory after a while if serving public
-    Fix: try to find a metadata api action in the app.
+    Fix: try to find a metadata api action in the app, or cache in a db.
 - sometimes stream url is null. loop over the other sources doesnt help.
     Fix: ???
 */
@@ -384,5 +382,5 @@ addon.defineCatalogHandler(function(args, cb) {
 if (module.parent) {
     module.exports = addon
 } else {
-    addon.runHTTPWithOptions({ port: 7000 })
+    addon.runHTTPWithOptions({ port: 80 })
 }
