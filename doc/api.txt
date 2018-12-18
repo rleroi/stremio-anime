@@ -1,0 +1,71 @@
+http://www.cryptogrium.com/aes-cbc.html
+https://codebeautify.org/hex-string-converter
+
+AES CBC private key (hex)	403638383639393937386d6f6e737465
+AES CBC IV (hex)			6d6f6e73746539393936353436383638
+
+PRIVATE_DOMAIN				app.kissanime.co
+MAIN_DOMAIN					x.free-contents.org
+KissAnime.webLink			kissanime.io
+KissAnime.api				PRIVATE_DOMAIN (app.kissanime.co)
+KissAnime Hawk				kisscartoon.io (orhanobut/hawk, referer: self)
+KissAnime Interface Api.PUT	/kiss.php
+Xfree Hawk					kissanime.io
+Xfree.Api Interface Api.GET	/anime/kissanime.php
+KpointApi.java				x.free-contents.org/apps/list.php
+
+
+# search
+curl -i -s -k  -X $'PUT' \
+    -H $'Referer: https://kisscartoon.io' -H $'User-Agent: AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung' -H $'Content-Type: application/x-www-form-urlencoded' \
+    --data-binary $'s=shin%20chan&action=search&page=1' \
+    $'https://app.kissanime.co/kiss.php'
+	
+	
+# get episodes
+curl -i -s -k  -X $'PUT' \
+    -H $'Referer: https://kisscartoon.io' -H $'User-Agent: AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung' -H $'Content-Type: application/x-www-form-urlencoded' \
+    --data-binary $'action=load_episodes&movie_id=6911' \
+    $'https://app.kissanime.co/kiss.php'
+	
+	
+# get stream url. returns a (probably time based) url where we can request the actual stream url
+curl -i -s -k  -X $'PUT' \
+    -H $'Referer: https://kisscartoon.io' -H $'User-Agent: AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung' -H $'Content-Type: application/x-www-form-urlencoded' \
+    --data-binary $'episode_id=146503&action=load_link' \
+    $'https://app.kissanime.co/kiss.php'
+	
+	
+# update K points
+curl -i -s -k  -X $'PUT' \
+    -H $'Referer: https://kisscartoon.io' -H $'User-Agent: AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung' -H $'Content-Type: application/x-www-form-urlencoded' \
+    --data-binary $'action=update_point&point=40&token=xxx' \
+    $'https://app.kissanime.co/kiss.php'
+	
+	
+# get user profile
+curl -i -s -k  -X $'PUT' \
+    -H $'Referer: https://kisscartoon.io' -H $'User-Agent: AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung' -H $'Content-Type: application/x-www-form-urlencoded' \
+    --data-binary $'action=profile&token=xxx' \
+    $'https://app.kissanime.co/kiss.php'
+	
+	
+# login (and receive token)
+curl -i -s -k  -X $'PUT' \
+    -H $'Referer: https://kisscartoon.io' -H $'User-Agent: AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung' -H $'Content-Type: application/x-www-form-urlencoded' \
+    --data-binary $'password=password&action=login&username=username' \
+    $'https://app.kissanime.co/kiss.php'
+	
+	
+# list 'new and hot' episodes
+curl -i -s -k  -X $'PUT' \
+    -H $'Referer: https://kisscartoon.io' -H $'User-Agent: AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung' -H $'Content-Type: application/x-www-form-urlencoded' \
+    --data-binary $'action=list&sort=new_and_hot&page=1' \
+    $'https://app.kissanime.co/kiss.php'
+	
+	
+# list genre 'action'
+curl -i -s -k  -X $'PUT' \
+    -H $'Referer: https://kisscartoon.io' -H $'User-Agent: AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung' -H $'Content-Type: application/x-www-form-urlencoded' \
+    --data-binary $'action=genre&genre_slug=Action&page=1&type=slug' \
+    $'https://app.kissanime.co/kiss.php'
