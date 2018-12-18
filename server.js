@@ -382,5 +382,8 @@ addon.defineCatalogHandler(function(args, cb) {
 if (module.parent) {
     module.exports = addon
 } else {
-    addon.runHTTPWithOptions({ port: 80 })
+    //addon.publishToDir('static');
+    //addon.publishToWeb('http://stremio-anime.now.sh/manifest.json');
+    //addon.publishToCentral('http://anime.sgp.ers.pw:7000/manifest.json');
+    addon.runHTTPWithOptions({ port: 7000 });
 }
