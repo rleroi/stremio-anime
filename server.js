@@ -331,12 +331,14 @@ addon.defineCatalogHandler(function(args, cb) {
         console.log('decrypting response...');
         let aesData = aesjs.utils.hex.toBytes(r.data);
         var aesCbc = new aesjs.ModeOfOperation.cbc(aesKey, aesIv);
+        //console.log(r.data);
 
         try {
             var result = aesjs.utils.utf8.fromBytes(aesCbc.decrypt(aesData));
 
             result = stripJson(result);
             var resultObj = JSON.parse(result);
+            //console.log(resultObj);
 
             var dataset = [];
 
@@ -368,8 +370,9 @@ addon.defineCatalogHandler(function(args, cb) {
 
     })
     .then((dataset) => {
-        console.log('finish getting animes for catalog');
+        console.log('finish getting '+dataset.length+' animes for catalog');
         cb(null, { metas: dataset });
+        //console.log(dataset);
     })
     .catch((e) => {
         console.log(e.message);
@@ -382,9 +385,9 @@ addon.defineCatalogHandler(function(args, cb) {
 if (module.parent) {
     module.exports = addon
 } else {
-    addon.runHTTPWithOptions({ port: 7000 });
-
     //addon.publishToDir('static');
-    //addon.publishToWeb('http://anime.ers.pw/manifest.json');
-    addon.publishToCentral('http://anime.ers.pw/manifest.json');
+    //addon.publishToWeb('https://anime.ers.pw/manifest.json');
+    //addon.publishToCentral('https://anime.ers.pw/manifest.json')
+
+    addon.runHTTPWithOptions({ port: 7000 });
 }
