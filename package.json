@@ -2,7 +2,7 @@
   "name": "stremio-anime",
   "version": "1.0.0",
   "description": "KissAnime addon for Stremio",
-  "main": "server.js",
+  "main": "stremio-anime.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
