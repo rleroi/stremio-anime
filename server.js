@@ -287,7 +287,7 @@ addon.defineMetaHandler((args, cb) => {
             var dataset = {
                 id: args.id,
                 name: cache[args.id].name,
-                overview: cache[args.id].overview,
+                //overview: cache[args.id].overview,
                 description: cache[args.id].overview,
                 genres: cache[args.id].genres,
                 type: 'series',
@@ -318,11 +318,13 @@ addon.defineMetaHandler((args, cb) => {
                     var resultObj = JSON.parse(result);
                     //console.log(resultObj);
                     for(let ep of resultObj.data.episodes) {
-                        var episode = ep.name.match(/[0-9]+/g)[0];
+                    var episode = ep.name.match(/[0-9]+/g);
                     
-                        if(!episode) {
-                            episode = ep.id
-                        }
+                    if(!episode) {
+                        episode = ep.id
+                    } else {
+                        episode = episode[[0]]
+                    }
 
                         //console.log('group ep: '+episode);
                         let video = {
@@ -363,7 +365,7 @@ addon.defineMetaHandler((args, cb) => {
                 var dataset = {
                     id: args.id,
                     name: cache[args.id].name,
-                    overview: cache[args.id].overview,
+                    //overview: cache[args.id].overview,
                     description: cache[args.id].overview,
                     genres: cache[args.id].genres,
                     type: 'series',
@@ -433,7 +435,7 @@ addon.defineCatalogHandler((args, cb) => {
                     id: "ka:"+ani.id,
                     name: ani.name,
                     genres: genres,
-                    overview: striptags(ani.description),
+                    //overview: striptags(ani.description),
                     description: striptags(ani.description),
                     poster: ani.thumb,
                     background: ani.cover,
