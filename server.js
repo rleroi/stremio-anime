@@ -8,8 +8,10 @@ TODO:
 - Cache might take too much memory after a while if serving public
     Fix: try to find a metadata api action in the app, or cache in a db.
 - sometimes stream url from kissanime server is empty. loop over the other sources doesnt seem to help?
+    Fix: request twice, they always seem to work on the second try
+- check logs: 'no stream url found' and see if there are some with more than '1 1' for stream sources. if so, we shouldn't return on first invalid url. instead, loop over all and do the promise stuff in an array and use Promise.all().then(). so we can push all streams to the streams array
+- check logs: 'Cannot read property'
     Fix: ???
-- check logs 'no stream url found' and see if there are some with more than '1 1' for stream sources. if so, we shouldn't return on first invalid url. instead, loop over all and do the promise stuff in an array and use Promise.all().then(). so we can push all streams to the streams array
 */
 
 var manifest = {
@@ -17,7 +19,7 @@ var manifest = {
     "version": "0.0.2",
 
     "name": "Anime Addon",
-    "description": "Anime series and movies from kissanime",
+    "description": "Anime series and movies from kissanime. If you like this addon, you can donate to help pay for server costs: https://buymeacoff.ee/anime",
 
 	"icon": "https://img00.deviantart.net/7b0b/i/2011/273/9/c/anime_totoro_dock_icon_by_cmnixon-d4belub.png",
 	
