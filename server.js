@@ -5,7 +5,9 @@ var striptags = require('striptags') // https://www.npmjs.com/package/striptags
 
 /* 
 TODO:
-- Cache might take too much memory after a while if serving public
+- Try to connect anime with imdb ID to show steam in Cinemeta addon
+    Fix: see https://github.com/Stremio/stremio-addons/blob/master/docs/tutorial/using-cinemeta.md, but i think it only searches on filename. We could try searching anime name (without (dub) etc.) on a movie database api
+- Cache might take too much memory after a while
     Fix: try to find a metadata api action in the app, or cache in a db.
 - sometimes stream url from kissanime server is empty. loop over the other sources doesnt seem to help?
     Fix: request twice, they always seem to work on the second try
@@ -16,10 +18,10 @@ TODO:
 
 var manifest = {
     "id": "pw.ers.anime",
-    "version": "0.0.2",
+    "version": "0.0.3",
 
-    "name": "Anime Addon",
-    "description": "Anime series and movies from kissanime. If you like this addon, you can donate to help pay for server costs: https://buymeacoff.ee/anime",
+    "name": "Anime Add-on",
+    "description": "Go to Discover -> Series -> Anime to watch! If you like this add-on, you can donate to help pay for server costs: https://buymeacoff.ee/anime",
 
 	"icon": "https://img00.deviantart.net/7b0b/i/2011/273/9/c/anime_totoro_dock_icon_by_cmnixon-d4belub.png",
 	
@@ -80,7 +82,8 @@ var apiUrl = 'https://app.kissanime.co/kiss.php';
 var aesKey = aesjs.utils.hex.toBytes('403638383639393937386d6f6e737465');
 var aesIv  = aesjs.utils.hex.toBytes('6d6f6e73746539393936353436383638');
 
-var cache = {};
+var cache = {}; // saves series metadata
+var requestCache = {}; // saves kissanime api requests. key = the request params. Thanks BoredLama
 
 // strip invalid json characters
 function stripJson(data) {
@@ -103,6 +106,12 @@ addon.defineStreamHandler((args, cb) => {
 
     var apiParams = 'action=load_link&episode_id='+args.id.split(':')[3];
 
+    // try to get from cache
+    if(requestCache[apiParams]) {
+        //console.log(requestCache[apiParams]);
+        return cb(null, { streams: requestCache[apiParams] });
+    }
+
     // get animes
     axios.put(apiUrl, apiParams, apiOptions)
     .then((r) => {
@@ -120,6 +129,7 @@ addon.defineStreamHandler((args, cb) => {
 
         } catch(e) {
             console.log(e.message);
+            cb(new Error('Error getting streams'), null);
         }
 
     })
@@ -146,12 +156,17 @@ addon.defineStreamHandler((args, cb) => {
                         //isFree: 1
                     });
 
+                    console.log('save streams to cache');
+                    requestCache[apiParams] = streams;
+                    // delete from cache after 1 day
+                    setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+
                     return cb(null, { streams: streams });
                 }
 
                 //console.log('requesting', source.file);
 
-                // BoredLama's fix | https://github.com/rleroi/stremio-anime/issues/3
+                // BoredLama's m3u8 fix | https://github.com/rleroi/stremio-anime/issues/3
                 axios.get(source.file)
                 .then((r) => {
                     const body = r.data;
@@ -172,7 +187,7 @@ addon.defineStreamHandler((args, cb) => {
                                     console.error(new Error('Error 2: The HLS Playlist Failed Parsing'))
                                 } else {
                                     // Success: Correct HLS Playlist is: "m3uList"; Send to Stremio
-                                    console.log('successfully applied BoredLama\'s fix');
+                                    //console.log('successfully applied BoredLama\'s fix');
                                     streams.push({
                                         name: 'KissAnime',
                                         title: source.type,
@@ -198,17 +213,23 @@ addon.defineStreamHandler((args, cb) => {
                     return streams;
                 })
                 .then((streams) => {
-                    //console.log('finish getting streams');
+                    console.log('save streams to cache');
+                    requestCache[apiParams] = streams;
+                    // delete from cache after 1 day
+                    setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+
                     return cb(null, { streams: streams });
                 })
                 .catch((e) => {
                     console.error(e)
+                    cb(new Error('Error getting streams'), null);
                 })
             }
         }
     })
     .catch((e) => {
-        console.log(e.message);
+        console.log(e);
+        cb(new Error('Error getting streams'), null);
     })
 
 })
@@ -218,6 +239,11 @@ addon.defineMetaHandler((args, cb) => {
     console.log('MetaHandler', args)
 
     var apiParams = 'action=load_episodes&movie_id='+args.id.split(':')[1];
+
+    // try to get from cache
+    if(requestCache[apiParams]) {
+        return cb(null, { meta: requestCache[apiParams] });
+    }
 
     // get episodes
     axios.put(apiUrl, apiParams, apiOptions)
@@ -252,12 +278,13 @@ addon.defineMetaHandler((args, cb) => {
                     } else {
                         episode = episode[[0]]
                     }
+                    episode = parseInt(episode);
 
                     //console.log('ep: '+episode);
                     let video = {
                         id: args.id+':1:'+ep.id,
                         title: ep.name,
-                        released: new Date((ep.time_create - 60*60*24)*1000), // episodes should be added a day earlier so that new ones don't show as 'upcoming'
+                        released: new Date(0+episode), // fix order
                         //overview: cache[args.id].overview,
                         //description: cache[args.id].overview,
                         streams: [
@@ -277,14 +304,14 @@ addon.defineMetaHandler((args, cb) => {
             }
 
             // let's sort the episodes. // doesn't matter, for some reason stremio doesn't show the correct order
-            videos.sort((a,b) => {
-                if(a.title < b.title) {
-                    return -1;
-                } else if(a.title > b.title) {
-                    return 1
-                }
-                return 0;
-            })
+            // videos.sort((a,b) => {
+            //     if(a.title < b.title) {
+            //         return -1;
+            //     } else if(a.title > b.title) {
+            //         return 1
+            //     }
+            //     return 0;
+            // })
 
             var dataset = {
                 id: args.id,
@@ -302,7 +329,8 @@ addon.defineMetaHandler((args, cb) => {
             return dataset;
 
         } catch(e) {
-            console.log(e.message);
+            console.log(e);
+            cb(new Error('Error getting episodes'), null);
         }
 
     })
@@ -312,6 +340,9 @@ addon.defineMetaHandler((args, cb) => {
                 //console.log('Decrypting group data...');
                 var videos = [];
 
+                season = rArray.length;
+
+                // foreach group in groups
                 for(let r of rArray) {
                     let aesData = aesjs.utils.hex.toBytes(r.data);
                     var aesCbc = new aesjs.ModeOfOperation.cbc(aesKey, aesIv);
@@ -319,20 +350,23 @@ addon.defineMetaHandler((args, cb) => {
                     result = stripJson(result);
                     var resultObj = JSON.parse(result);
                     //console.log(resultObj);
+
+                    // foreach episode in group
                     for(let ep of resultObj.data.episodes) {
                     var episode = ep.name.match(/[0-9]+/g);
                     
-                    if(!episode) {
-                        episode = ep.id
-                    } else {
-                        episode = episode[[0]]
-                    }
+                        if(!episode) {
+                            episode = ep.id
+                        } else {
+                            episode = episode[[0]]
+                        }
+                        episode = parseInt(episode);
 
                         //console.log('group ep: '+episode);
                         let video = {
                             id: args.id+':'+resultObj.params.group+':'+ep.id,
                             title: ep.name,
-                            released: new Date((ep.time_create - 60*60*24)*1000),
+                            released: new Date(0+episode),
                             //overview: cache[args.id].overview,
                             //description: cache[args.id].overview,
                             streams: [
@@ -345,21 +379,22 @@ addon.defineMetaHandler((args, cb) => {
                                 }
                             ],
                             episode: episode, // ep.id,
-                            season: resultObj.params.group,
+                            season: season //resultObj.params.group,
                         };
                         videos.push(video);
                     }
-                }
+                    season--;
+                }                
 
                 // let's sort the episodes
-                videos.sort((a,b) => {
-                    if(a.title < b.title) {
-                        return -1;
-                    } else if(a.title > b.title) {
-                        return 1
-                    }
-                    return 0;
-                })
+                // videos.sort((a,b) => {
+                //     if(a.title < b.title) {
+                //         return -1;
+                //     } else if(a.title > b.title) {
+                //         return 1
+                //     }
+                //     return 0;
+                // })
 
                 return videos;
             })
@@ -377,21 +412,31 @@ addon.defineMetaHandler((args, cb) => {
                     isPeered: true
                 };
 
-                //console.log('finish getting episodes from group');
+
+                console.log('save meta to cache');
+                requestCache[apiParams] = dataset;
+                // delete from cache after 1 day
+                setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+
                 cb(null, { meta: dataset });
             })
             .catch((e) => {
-                console.log(e.message);
+                console.log(e);
+                cb(new Error('Error getting episodes'), null);
             })
         } else {
-            //console.log('finish getting metadata');
+            console.log('save meta to cache');
+            requestCache[apiParams] = dataset;
+            // delete from cache after 1 day
+            setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+
             cb(null, { meta: dataset });
-            //console.log(dataset);
         }
 
     })
     .catch((e) => {
-        console.log(e.message);
+        console.log(e);
+        cb(new Error('Error getting episodes'), null);
     })
 })
 
@@ -410,6 +455,11 @@ addon.defineCatalogHandler((args, cb) => {
         apiParams = 's='+args.extra.search+'&action=search&page='+page;
     }
 
+    // try to get from cache
+    if(requestCache[apiParams]) {
+        return cb(null, { metas: requestCache[apiParams] });
+    }
+
     // get animes
     axios.put(apiUrl, apiParams, apiOptions)
     .then((r) => {
@@ -426,6 +476,10 @@ addon.defineCatalogHandler((args, cb) => {
             //console.log(resultObj);
 
             var dataset = [];
+
+            if(typeof resultObj.data == "undefined") {
+                throw new Error('Error getting '+args.extra.genre);
+            }
 
             for(let ani of resultObj.data.anime_list) {
                 var genres = ani.genre.split(',');
@@ -451,17 +505,22 @@ addon.defineCatalogHandler((args, cb) => {
             return dataset;
 
         } catch(e) {
-            console.log(e.message);
+            console.log(e);
+            cb(new Error('Error getting catalog'), null);
         }
 
     })
     .then((dataset) => {
-        console.log('got '+dataset.length+' animes for catalog');
+        console.log('save catalog to cache');
+        requestCache[apiParams] = dataset;
+        // delete from cache after 1 day
+        setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+
         cb(null, { metas: dataset });
-        //console.log(dataset);
     })
     .catch((e) => {
-        console.log(e.message);
+        console.log(e);
+        cb(new Error('Error getting catalog'), null);
     })
 
 })
@@ -471,7 +530,7 @@ addon.defineCatalogHandler((args, cb) => {
 if (module.parent) {
     module.exports = addon
 } else {
-    //addon.publishToCentral('https://anime.ers.pw/manifest.json')
+    addon.publishToCentral('https://anime.ers.pw/manifest.json')
 
     addon.runHTTPWithOptions({ port: 7000 });
 }
