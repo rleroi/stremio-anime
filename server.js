@@ -158,8 +158,8 @@ addon.defineStreamHandler((args, cb) => {
 
                     console.log('save streams to cache');
                     requestCache[apiParams] = streams;
-                    // delete from cache after 1 day
-                    setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+                    // delete from cache after 1 minute
+                    setTimeout(() => { delete requestCache[apiParams] }, 60*1000);
 
                     return cb(null, { streams: streams });
                 }
@@ -215,8 +215,8 @@ addon.defineStreamHandler((args, cb) => {
                 .then((streams) => {
                     console.log('save streams to cache');
                     requestCache[apiParams] = streams;
-                    // delete from cache after 1 day
-                    setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+                    // delete from cache after 1 minute
+                    setTimeout(() => { delete requestCache[apiParams] }, 60*1000);
 
                     return cb(null, { streams: streams });
                 })
