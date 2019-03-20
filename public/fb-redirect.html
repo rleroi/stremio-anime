@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Loading...</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+</head>
+<body onload="redirect()">
+
+<script>
+    function redirect() {
+        var apiOptions = {
+            headers: {'Referer': 'https://kisscartoon.io', 'User-Agent': 'AndroidApp - APP2 - - 1.0.15 - com.security.applock.samsung', 'Content-Type': 'application/x-www-form-urlencoded'},
+        };
+        var ipUrl = 'https://myexternalip.com/raw';
+        var baseUrl = 'https://play.kissanime.ac';
+        var currentUrl = new URL(window.location.href);
+        var apiUrl = currentUrl.searchParams.get('url');
+
+        if(!apiUrl) {
+            document.write('Invalid URL');
+        } else {
+            document.write('Loading...');
+        }
+
+        // never mind, can't do ajax call to play.kissanime.ac because of cors. -.- can't use a proxy because we need to use client IP
+        // what if we put client IP in cloudflare's original IP header and request it through cors proxy?
+        // nope, not allowed obviously, would make ip spoofable. weird error from cloudflare though: DNS points to prohibited IP
+        /*
+        CF-Connecting-IP clientIP;
+        X-Forwarded-For: clientIP;
+         */
+        axios.get(ipUrl).then((r) => {
+            var clientIP = r.data;
+            console.log('client url: ', clientIP);
+
+            var proxy = 'http://goxcors.appspot.com/cors?method=PUT&header=Content-Type%7Capplication%2Fx-www-form-urlencoded&header=User-Agent%7CAndroidApp%20-%20APP2%20-%20-%201.0.15%20-%20com.security.applock.samsung&header=Referer%7Chttps%3A%2F%2Fkisscartoon.io';
+            proxy = proxy+'&header=CF-Connecting-IP%7C'+clientIP; // this one gives error: DNS points to prohibited IP
+            //proxy = proxy+'&header=X-Forwarded-For%7C'+clientIP; // this one wont work
+
+            axios.put(proxy+'&url='+encodeURIComponent(baseUrl+apiUrl)).then(function (r) {
+                var data = JSON.parse(r.data);
+                console.log(data);
+                window.location.href = data.fb;
+            })
+
+        })
+    }
+</script>
+</body>
+</html>
