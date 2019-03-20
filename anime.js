@@ -675,10 +675,10 @@ addon.defineCatalogHandler((args) => {
 
 
 
-if (module.parent) {
+//if (module.parent) {
     module.exports = addon.getInterface();
-} else {
-    serveHTTP(addon.getInterface(), { port: 7000, cacheMaxAge: 86400 }); // cache 1 day
-}
+//} else {
+//    serveHTTP(addon.getInterface(), { port: 7000, cacheMaxAge: 86400 }); // cache 1 day
+//}
 
 publishToCentral('https://anime.ers.pw/manifest.json');
