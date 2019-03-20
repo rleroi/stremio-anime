@@ -17,11 +17,11 @@ TODO:
 */
 
 var manifest = {
-    "id": "pw.ers.anime",
+    "id": "ga.stremio-anime",
     "version": "0.0.4",
 
     "name": "Anime Add-on",
-    "description": "New version!",
+    "description": "New version! Now includes genre selection. Go to Series -> Anime to watch!",
 
 	"icon": "https://img00.deviantart.net/7b0b/i/2011/273/9/c/anime_totoro_dock_icon_by_cmnixon-d4belub.png",
 	
@@ -94,7 +94,7 @@ var manifest = {
                 'Yuri',
             ]
         },
-        {
+        /*{
             type: 'movie',
             id: 'kissanime',
             name: 'Anime',
@@ -151,7 +151,7 @@ var manifest = {
                 'Vampire',
                 'Yuri',
             ]
-        },
+        },*/
     ],
 
     // prefix of item IDs (ie: "tt0032138")
@@ -681,4 +681,4 @@ addon.defineCatalogHandler((args) => {
 //    serveHTTP(addon.getInterface(), { port: 7000, cacheMaxAge: 86400 }); // cache 1 day
 //}
 
-publishToCentral('https://anime.ers.pw/manifest.json');
+publishToCentral('https://stremio-anime.ga/manifest.json');
