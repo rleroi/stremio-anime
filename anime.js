@@ -440,6 +440,7 @@ addon.defineMetaHandler((args) => {
                     isPeered: true
                 };
             } else {
+                console.log()
                 // build dataset from videos list and our meta cache
                 dataset = {
                     id: args.id,
@@ -454,7 +455,7 @@ addon.defineMetaHandler((args) => {
                     isPeered: true
                 };
 
-                console.log('save to cache');
+                console.log('save meta to cache');
                 requestCache[apiParams] = dataset;
                 // delete from cache after 1 day
                 setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
@@ -549,12 +550,12 @@ addon.defineMetaHandler((args) => {
                         videos: videos,
                         isPeered: true
                     };
-                }
 
-                console.log('save meta to cache');
-                requestCache[apiParams] = dataset;
-                // delete from cache after 1 day
-                setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+                    console.log('save meta to cache');
+                    requestCache[apiParams] = dataset;
+                    // delete from cache after 1 day
+                    setTimeout(() => { delete requestCache[apiParams] }, 86400000); // 60*60*24*1000
+                }
 
                 return Promise.resolve({ meta: dataset });
             }).catch((e) => {
@@ -604,12 +605,12 @@ addon.defineCatalogHandler((args) => {
 
     let apiParams = '';
 
-    if(category) {
+    if(search) {
+        apiParams = 's='+args.extra.search+'&action=search&page='+page;
+    } else if(category) {
         apiParams = 'action=list&sort='+category+'&page='+page;
     } else if(genre) {
         apiParams = 'action=genre&genre_slug='+ genre +'&page='+page+'&type=slug';
-    } else if(search) {
-        apiParams = 's='+args.extra.search+'&action=search&page='+page;
     } else {
         throw new Error('No genre nor search query');
     }
@@ -674,11 +675,12 @@ addon.defineCatalogHandler((args) => {
 })
 
 
-
-//if (module.parent) {
+//console.log('module.parent:',module.parent);
+if (module.parent) {
+    console.log('exporting anime class');
     module.exports = addon.getInterface();
-//} else {
-//    serveHTTP(addon.getInterface(), { port: 7000, cacheMaxAge: 86400 }); // cache 1 day
-//}
+} else {
+   serveHTTP(addon.getInterface(), { port: 7000, cacheMaxAge: 86400 }); // cache 1 day
+}
 
 publishToCentral('https://stremio-anime.ga/manifest.json');
